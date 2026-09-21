@@ -1,1 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Brunei Banking Risk Stress Tester</title>
+<style>
+:root{
+  --navy:#081a2c;--navy2:#102d46;--teal:#087f8c;--gold:#c9a34a;
+  --bg:#eef2f6;--card:#fff;--ink:#182738;--muted:#627386;--line:#d7e0e8;
+  --green:#147a55;--greenbg:#eaf7f1;--amber:#9b6800;--amberbg:#fff6df;
+  --red:#b3313b;--redbg:#fdecef;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,Segoe UI,Arial,sans-serif}
+.top{background:linear-gradient(110deg,var(--navy),var(--navy2));color:#fff;border-bottom:3px solid var(--gold)}
+.topin{max-width:1450px;margin:auto;padding:15px 24px;display:flex;justify-content:space-between;align-items:center}
+.brand{display:flex;align-items:center;gap:11px}.mark{width:38px;height:38px;border:1px solid #67819a;border-radius:9px;display:grid;place-items:center;color:#e0c26d;font-weight:800}
+.brand strong{display:block;font-size:14px;letter-spacing:.06em}.brand small{color:#bdcad7;font-size:11px}
+.badge{font-size:10px;letter-spacing:.08em;border:1px solid #607b94;padding:7px 10px;border-radius:99px;color:#dce8f2}
+.wrap{max-width:1450px;margin:auto;padding:22px}
+.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;margin-bottom:16px}
+h1{font-size:28px;margin:0 0 5px}.hero p{margin:0;color:var(--muted);font-size:14px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:#fff;color:var(--ink);padding:10px 13px;border-radius:8px;cursor:pointer;font-weight:650}.btn:hover{border-color:var(--teal)}.btn.teal{background:var(--teal);border-color:var(--teal);color:#fff}.btn.navy{background:var(--navy);border-color:var(--navy);color:#fff}
+.layout{display:grid;grid-template-columns:355px 1fr;gap:17px}.panel{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:16px;box-shadow:0 8px 25px rgba(8,26,44,.06)}
+.side{height:max-content;position:sticky;top:12px}.panel h2{font-size:14px;margin:0 0 12px}.panel h3{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:#43566b;margin:17px 0 9px}
+.section{border-top:1px solid var(--line);margin-top:15px;padding-top:14px}
+.scenarios{display:grid;grid-template-columns:1fr 1fr;gap:7px}.scenario{border:1px solid var(--line);background:#fff;border-radius:8px;padding:9px;text-align:left;cursor:pointer;color:var(--ink);font-size:11px}.scenario.active{background:var(--teal);border-color:var(--teal);color:#fff}.scenario b{font-size:11px}
+.field{margin:10px 0}.field label{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:11px;margin-bottom:5px}.field input[type=number]{width:100%;padding:8px;border:1px solid #aebdca;border-radius:7px;color:var(--ink);background:#fff}.field input[type=range]{width:100%;accent-color:var(--teal)}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.kpi{background:#fff;border:1px solid var(--line);border-radius:11px;padding:13px;box-shadow:0 8px 25px rgba(8,26,44,.05)}.kpi .label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}.kpi .value{font-size:23px;font-weight:800;margin:7px 0;color:var(--ink)}.kpi .status{font-size:10px}
+.good{color:var(--green)!important}.warn{color:var(--amber)!important}.bad{color:var(--red)!important}
+.two{display:grid;grid-template-columns:1.15fr .85fr;gap:16px;margin-top:16px}.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:16px}
+.sectionhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px}.sectionhead span{font-size:10px;color:var(--muted)}
+.flow{display:grid;grid-template-columns:1fr 25px 1fr 25px 1fr;align-items:center;gap:4px}.flowbox{background:#f7f9fb;border:1px solid var(--line);border-radius:9px;padding:11px;text-align:center}.flowbox b{font-size:11px;display:block}.flowbox span{font-size:12px;color:var(--teal);font-weight:750}.arrow{color:var(--teal);text-align:center;font-weight:800}
+.chart{height:245px;margin-top:10px}.chart canvas{width:100%;height:100%}
+.heat{display:grid;grid-template-columns:1fr 1fr;gap:8px}.heatbox{border:1px solid var(--line);background:#f7f9fb;border-radius:9px;padding:12px}.heatbox b{font-size:11px}.heatbox span{display:block;font-size:11px;margin-top:6px}
+.buffer{height:12px;background:#e4eaf0;border-radius:99px;overflow:hidden}.buffer i{display:block;height:100%;width:0;background:var(--teal)}
+table{width:100%;border-collapse:collapse;font-size:11px}th,td{padding:8px;border-bottom:1px solid var(--line);text-align:right}th:first-child,td:first-child{text-align:left;color:var(--muted)}
+.callout{background:#f7f9fb;border-left:3px solid var(--teal);border-radius:8px;padding:12px;font-size:11px;line-height:1.55}
+.note,.source,.footer{font-size:10px;color:var(--muted);line-height:1.5}.source{background:#f7f9fb;padding:9px;border-radius:7px;margin-top:7px}.source a{color:var(--teal)}
+.footer{margin:17px 2px}
+@media(max-width:1100px){.layout{grid-template-columns:1fr}.side{position:static}.kpis{grid-template-columns:repeat(2,1fr)}.two,.three{grid-template-columns:1fr}.flow{grid-template-columns:1fr}.arrow{transform:rotate(90deg);height:18px}}
+@media(max-width:650px){.wrap{padding:12px}.topin{padding:12px}.hero{display:block}.actions{margin-top:12px}.kpis{grid-template-columns:1fr 1fr}}
+@media print{.top{print-color-adjust:exact}.side,.actions{display:none!important}.layout{display:block}.panel,.kpi{box-shadow:none}.wrap{padding:8px}}
+</style>
+</head>
+<body>
+<header class="top"><div class="topin">
+  <div class="brand"><div class="mark">R</div><div><strong>RISK MANAGEMENT</strong><small>Brunei Banking Stress Testing</small></div></div>
+  <div class="badge">PROTOTYPE • NOT FOR REGULATORY REPORTING</div>
+</div></header>
 
+<div class="wrap">
+  <div class="hero">
+    <div><h1>Brunei Banking Risk Stress Tester</h1><p>Interactive solvency, credit, liquidity and earnings stress-testing sandbox.</p></div>
+    <div class="actions">
+      <button class="btn" id="printBtn">Print / Save PDF</button>
+      <button class="btn teal" id="pdfBtn">Download PDF Report</button>
+      <button class="btn navy" id="wordBtn">Download Word Report</button>
+      <button class="btn" id="resetBtn">Reset</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <aside class="panel side">
+      <h2>Scenario Control</h2>
+      <div class="scenarios">
+        <button class="scenario active" data-s="base">Baseline<br><b>No stress</b></button>
+        <button class="scenario" data-s="mod">Moderate<br><b>Controlled shock</b></button>
+        <button class="scenario" data-s="sev">Severe<br><b>Combined stress</b></button>
+        <button class="scenario" data-s="rev">Reverse Stress<br><b>Threshold test</b></button>
+      </div>
+
+      <div class="section"><h3>Bank Baseline</h3>
+        <div class="field"><label>Total assets (BND m)</label><input id="assets" type="number" value="3500"></div>
+        <div class="field"><label>Gross loans / financing (BND m)</label><input id="loans" type="number" value="1800"></div>
+        <div class="field"><label>Customer deposits (BND m)</label><input id="deposits" type="number" value="2700"></div>
+        <div class="field"><label>Regulatory capital (BND m)</label><input id="capital" type="number" value="390"></div>
+        <div class="field"><label>Baseline NPLF (%)</label><input id="npl" type="number" step=".1" value="1"></div>
+        <div class="field"><label>Liquid assets (BND m)</label><input id="liquid" type="number" value="1450"></div>
+        <div class="field"><label>Risk-weighted assets (BND m)</label><input id="rwa" type="number" value="2080"></div>
+      </div>
+
+      <div class="section"><h3>Stress Drivers</h3>
+        <div class="field"><label>GDP shock <span id="gdpV"></span></label><input id="gdp" type="range" min="0" max="20" step=".5" value="0"></div>
+        <div class="field"><label>GDP → NPLF sensitivity <span id="sensV"></span></label><input id="sens" type="range" min="0" max="1" step=".05" value=".25"></div>
+        <div class="field"><label>Direct NPLF shock <span id="directV"></span></label><input id="direct" type="range" min="0" max="10" step=".1" value="0"></div>
+        <div class="field"><label>LGD / incremental loss <span id="lgdV"></span></label><input id="lgd" type="range" min="10" max="100" step="5" value="45"></div>
+        <div class="field"><label>Deposit run-off <span id="runV"></span></label><input id="run" type="range" min="0" max="40" step="1" value="0"></div>
+        <div class="field"><label>Funding cost increase <span id="fundV"></span></label><input id="fund" type="range" min="0" max="5" step=".1" value="0"></div>
+        <div class="field"><label>Market / FX loss <span id="mktV"></span></label><input id="mkt" type="range" min="0" max="100" step="1" value="0"></div>
+        <div class="field"><label>Operational loss <span id="opV"></span></label><input id="op" type="range" min="0" max="100" step="1" value="0"></div>
+        <div class="field"><label>Other capital impact <span id="othV"></span></label><input id="oth" type="range" min="0" max="150" step="1" value="0"></div>
+      </div>
+    </aside>
+
+    <main>
+      <div class="kpis">
+        <div class="kpi"><div class="label">Baseline CAR</div><div class="value" id="car0">—</div><div class="status">Starting position</div></div>
+        <div class="kpi"><div class="label">Stressed CAR</div><div class="value" id="car1">—</div><div class="status" id="carStatus">—</div></div>
+        <div class="kpi"><div class="label">Stressed NPLF</div><div class="value" id="npl1">—</div><div class="status" id="nplStatus">—</div></div>
+        <div class="kpi"><div class="label">Capital loss</div><div class="value" id="loss">—</div><div class="status">BND m</div></div>
+        <div class="kpi"><div class="label">Liquidity remaining</div><div class="value" id="liq">—</div><div class="status" id="liqStatus">—</div></div>
+      </div>
+
+      <div class="two">
+        <section class="panel">
+          <div class="sectionhead"><h2>Stress Transmission</h2><span>Live model linkage</span></div>
+          <div class="flow">
+            <div class="flowbox"><b>Macro shock</b><span id="flowGDP">0%</span></div><div class="arrow">→</div>
+            <div class="flowbox"><b>Credit quality</b><span id="flowNPL">1.0%</span></div><div class="arrow">→</div>
+            <div class="flowbox"><b>Capital</b><span id="flowCAR">18.8%</span></div>
+          </div>
+          <div class="chart"><canvas id="chart"></canvas></div>
+        </section>
+
+        <section class="panel">
+          <div class="sectionhead"><h2>Risk Heatmap</h2><span id="scenarioName">Baseline</span></div>
+          <div class="heat">
+            <div class="heatbox" id="hc"><b>Credit Risk</b><span>Low</span></div>
+            <div class="heatbox" id="hl"><b>Liquidity Risk</b><span>Low</span></div>
+            <div class="heatbox" id="hm"><b>Market / FX</b><span>Low</span></div>
+            <div class="heatbox" id="ho"><b>Operational</b><span>Low</span></div>
+          </div>
+          <h2 style="margin-top:17px">Capital Buffer vs 10% Reference Floor</h2>
+          <div class="buffer"><i id="bufferBar"></i></div>
+          <div class="source" id="bufferText">—</div>
+        </section>
+      </div>
+
+      <div class="three">
+        <section class="panel"><div class="sectionhead"><h2>Executive Interpretation</h2></div><div class="callout" id="interpret">—</div></section>
+        <section class="panel"><div class="sectionhead"><h2>Scenario Results</h2></div>
+          <table><thead><tr><th>Metric</th><th>Baseline</th><th>Stressed</th><th>Change</th></tr></thead><tbody id="tbl"></tbody></table>
+        </section>
+        <section class="panel"><div class="sectionhead"><h2>Key Risk Drivers</h2></div><div class="callout" id="drivers">—</div></section>
+      </div>
+
+      <div class="two">
+        <section class="panel"><h2>Model Assumptions</h2>
+          <div class="source"><b>BDCB-informed structure:</b> macro shocks are transmitted through macro-financial relationships to outcomes such as NPLF and CAR.</div>
+          <div class="source"><b>Illustrative assumptions:</b> GDP-to-NPLF sensitivity, LGD, funding-cost effect, RWA response and non-credit losses are user-controlled and are not official BDCB coefficients.</div>
+          <div class="source"><b>Reference floor:</b> 10% total CAR is used as a warning reference in this prototype.</div>
+        </section>
+        <section class="panel"><h2>BDCB Context & Sources</h2>
+          <div class="source">BDCB Macro Stress Testing Methodology — <a target="_blank" href="https://cms.bdcb.gov.bn/storage/uploads/publications/17089419819979950.pdf">view document</a></div>
+          <div class="source">BDCB Policy Statement 2/2025 — aggregate banking-sector CAR 18.7% in Q3 2025 — <a target="_blank" href="https://www.bdcb.gov.bn/publications/details?id=01kdpnxvm127aw3crcdpz7nq94">view publication</a></div>
+          <div class="source">BDCB publications — <a target="_blank" href="https://www.bdcb.gov.bn/publications">view publications</a></div>
+        </section>
+      </div>
+      <div class="footer">Prototype for interview/demo purposes. Not BDCB-approved, not regulatory reporting and not a validated internal capital or liquidity model. Production use requires institution-specific calibration, validation and governance.</div>
+    </main>
+  </div>
+</div>
+
+<script>
+(function(){
+  const $=id=>document.getElementById(id), n=id=>Number($(id).value)||0;
+  const fmt=(x,d=1)=>Number(x).toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d});
+  let scenario='base';
+
+  function setLabel(id,suffix){$(id+'V').textContent=$(id).value+suffix}
+
+  function calculate(){
+    const L=n('loans'),D=n('deposits'),C=n('capital'),N=n('npl'),LA=n('liquid'),R=n('rwa');
+    const g=n('gdp'),s=n('sens'),direct=n('direct'),lgd=n('lgd')/100,run=n('run')/100,fund=n('fund'),mkt=n('mkt'),op=n('op'),oth=n('oth');
+
+    const baseCAR=R?C/R*100:0;
+    const stressedNPL=Math.min(100,N+g*s+direct);
+    const incr=Math.max(0,stressedNPL-N);
+    const creditLoss=L*(incr/100)*lgd;
+    const fundingLoss=L*(fund/100);
+    const loss=creditLoss+fundingLoss+mkt+op+oth;
+    const stressedCapital=Math.max(0,C-loss);
+    const stressedRWA=R*(1+g*.0035+incr*.015);
+    const stressedCAR=stressedRWA?stressedCapital/stressedRWA*100:0;
+    const liquidity=Math.max(0,LA-D*run);
+    const liquidityCoverage=D?liquidity/D*100:0;
+
+    $('car0').textContent=fmt(baseCAR)+'%';
+    $('car1').textContent=fmt(stressedCAR)+'%';
+    $('npl1').textContent=fmt(stressedNPL)+'%';
+    $('loss').textContent=fmt(loss);
+    $('liq').textContent=fmt(liquidity);
+
+    const cs=$('carStatus');cs.textContent=stressedCAR<10?'Below 10% reference floor':stressedCAR<12?'Low buffer':'Above reference floor';cs.className='status '+(stressedCAR<10?'bad':stressedCAR<12?'warn':'good');
+    const ns=$('nplStatus');ns.textContent=stressedNPL>=5?'Elevated credit risk':stressedNPL>=3?'Watch credit risk':'Moderate credit risk';ns.className='status '+(stressedNPL>=5?'bad':stressedNPL>=3?'warn':'good');
+    const ls=$('liqStatus');ls.textContent=fmt(liquidityCoverage)+'% of deposits covered';ls.className='status '+(liquidityCoverage<20?'bad':liquidityCoverage<35?'warn':'good');
+
+    $('flowGDP').textContent=fmt(g,1)+'% shock';
+    $('flowNPL').textContent=fmt(stressedNPL)+'% NPLF';
+    $('flowCAR').textContent=fmt(stressedCAR)+'% CAR';
+
+    const levels={hc:incr>=4?'High':incr>=2?'Medium':'Low',hl:run*100>=20?'High':run*100>=10?'Medium':'Low',hm:mkt>=50?'High':mkt>=20?'Medium':'Low',ho:op>=50?'High':op>=20?'Medium':'Low'};
+    Object.entries(levels).forEach(([id,v])=>{const box=$(id),sp=box.querySelector('span');sp.textContent=v;box.style.background=v==='High'?'#fdecef':v==='Medium'?'#fff6df':'#eaf7f1';box.style.borderColor=v==='High'?'#efb1b1':v==='Medium'?'#ead39d':'#b8dfcc'});
+
+    const bar=Math.max(0,Math.min(100,stressedCAR/20*100));$('bufferBar').style.width=bar+'%';$('bufferBar').style.background=stressedCAR<10?'#b3313b':stressedCAR<12?'#c9a34a':'#087f8c';
+    $('bufferText').innerHTML=`Stressed CAR <b>${fmt(stressedCAR)}%</b> vs 10% reference floor. ${stressedCAR<10?'<b class="bad">Reference floor breached.</b>':stressedCAR<12?'<b class="warn">Narrower buffer.</b>':'<b class="good">Above reference floor.</b>'}`;
+
+    $('tbl').innerHTML=[
+      ['NPLF (%)',fmt(N)+'%',fmt(stressedNPL)+'%',fmt(stressedNPL-N)],
+      ['Capital (BND m)',fmt(C),fmt(stressedCapital),fmt(stressedCapital-C)],
+      ['CAR (%)',fmt(baseCAR)+'%',fmt(stressedCAR)+'%',fmt(stressedCAR-baseCAR)],
+      ['Liquid assets (BND m)',fmt(LA),fmt(liquidity),fmt(liquidity-LA)],
+      ['Estimated losses (BND m)','0',fmt(loss),fmt(loss)]
+    ].map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('');
+
+    $('interpret').innerHTML=`The <b>${$('scenarioName').textContent}</b> scenario produces a <b>${fmt(stressedNPL-N)} pp</b> increase in NPLF and an estimated <b>BND ${fmt(loss)}m</b> capital impact. Stressed CAR is <b>${fmt(stressedCAR)}%</b>. ${stressedCAR<10?'The modeled result falls below the 10% reference floor.':stressedCAR<12?'The modeled result remains above the reference floor but with a narrower buffer.':'The modeled result remains above the reference floor.'}`;
+
+    const drivers=[];
+    if(creditLoss)drivers.push(`Credit deterioration: BND ${fmt(creditLoss)}m estimated loss.`);
+    if(fundingLoss)drivers.push(`Funding-cost pressure: BND ${fmt(fundingLoss)}m.`);
+    if(run)drivers.push(`Deposit run-off: ${fmt(run*100,0)}%.`);
+    if(mkt)drivers.push(`Market / FX loss: BND ${fmt(mkt)}m.`);
+    if(op)drivers.push(`Operational loss: BND ${fmt(op)}m.`);
+    $('drivers').innerHTML=drivers.length?drivers.map(x=>'• '+x).join('<br>'):'No material stress driver selected.';
+
+    draw(baseCAR,stressedCAR);
+    window.report={scenario:$('scenarioName').textContent,date:new Date().toLocaleString(),baseCAR,stressedCAR,N,stressedNPL,loss,LA,liquidity,liquidityCoverage,g,s,direct,lgd,run,fund,mkt,op,oth};
+  }
+
+  function draw(base,stress){
+    const c=$('chart'),ctx=c.getContext('2d'),w=c.clientWidth||500,h=c.clientHeight||245,dpr=devicePixelRatio||1;
+    c.width=w*dpr;c.height=h*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
+    const max=Math.max(20,base,stress)*1.15;
+    [['Baseline',base,'#147a55'],['Stressed',stress,'#087f8c']].forEach((x,i)=>{
+      const bw=Math.min(130,(w-100)/2),x0=45+i*(w-100)/2,bh=x[1]/max*(h-65);
+      ctx.fillStyle=x[2];ctx.fillRect(x0,h-40-bh,bw,bh);
+      ctx.fillStyle='#182738';ctx.font='12px Segoe UI';ctx.textAlign='center';ctx.fillText(fmt(x[1])+'%',x0+bw/2,h-48-bh);ctx.fillText(x[0],x0+bw/2,h-20);
+    });
+    ctx.strokeStyle='#d7e0e8';ctx.beginPath();ctx.moveTo(25,h-40);ctx.lineTo(w-20,h-40);ctx.stroke();
+  }
+
+  function preset(s){
+    scenario=s;
+    const presets={
+      base:[0,.25,0,45,0,0,0,0],
+      mod:[3,.25,.5,45,10,.5,10,5],
+      sev:[8,.35,2,55,25,2,40,20],
+      rev:[15,.5,4,65,35,3,60,30]
+    };
+    const p=presets[s];
+    ['gdp','sens','direct','lgd','run','fund','mkt','op'].forEach((id,i)=>$(id).value=p[i]);
+    $('oth').value=p[7];
+    const names={base:'Baseline',mod:'Moderate Stress',sev:'Severe Stress',rev:'Reverse Stress'};
+    $('scenarioName').textContent=names[s];
+    document.querySelectorAll('.scenario').forEach(btn=>btn.classList.toggle('active',btn.dataset.s===s));
+    updateLabels();calculate();
+  }
+
+  function updateLabels(){
+    setLabel('gdp','%');setLabel('sens',' pp');setLabel('direct',' pp');setLabel('lgd','%');setLabel('run','%');setLabel('fund',' pp');setLabel('mkt',' BND m');setLabel('op',' BND m');setLabel('oth',' BND m');
+  }
+
+  function reportText(){
+    const r=window.report;
+    return `BRUNEI BANKING RISK STRESS TEST REPORT
+
+Scenario: ${r.scenario}
+Assessment date: ${r.date}
+Status: PROTOTYPE - NOT FOR REGULATORY REPORTING
+
+EXECUTIVE SUMMARY
+NPLF: ${fmt(r.N)}% -> ${fmt(r.stressedNPL)}%
+CAR: ${fmt(r.baseCAR)}% -> ${fmt(r.stressedCAR)}%
+Estimated capital impact: BND ${fmt(r.loss)}m
+Remaining liquid assets: BND ${fmt(r.liquidity)}m
+
+KEY STRESS ASSUMPTIONS
+GDP shock: ${fmt(r.g)}%
+GDP-to-NPLF sensitivity: ${fmt(r.s)} pp per 1% GDP shock
+Direct NPLF shock: ${fmt(r.direct)} pp
+LGD: ${fmt(r.lgd*100)}%
+Deposit run-off: ${fmt(r.run*100)}%
+Funding-cost increase: ${fmt(r.fund)} pp
+Market / FX loss: BND ${fmt(r.mkt)}m
+Operational loss: BND ${fmt(r.op)}m
+
+CAPITAL & LIQUIDITY
+Baseline CAR: ${fmt(r.baseCAR)}%
+Stressed CAR: ${fmt(r.stressedCAR)}%
+Baseline NPLF: ${fmt(r.N)}%
+Stressed NPLF: ${fmt(r.stressedNPL)}%
+Baseline liquid assets: BND ${fmt(r.LA)}m
+Stressed liquid assets: BND ${fmt(r.liquidity)}m
+Remaining liquid assets / deposits: ${fmt(r.liquidityCoverage)}%
+
+MODEL GOVERNANCE
+The macro-to-credit structure is BDCB-informed. Stress coefficients are illustrative and user-controlled. This prototype is not a BDCB-approved stress model or regulatory report.
+
+BDCB REFERENCES
+BDCB Macro Stress Testing Methodology:
+https://cms.bdcb.gov.bn/storage/uploads/publications/17089419819979950.pdf
+BDCB Policy Statement 2/2025:
+https://www.bdcb.gov.bn/publications/details?id=01kdpnxvm127aw3crcdpz7nq94`;
+  }
+
+  function downloadWord(){
+    const htmlDoc=`<!doctype html><html><head><meta charset="utf-8"><title>Brunei Banking Risk Stress Test Report</title><style>body{font-family:Arial;margin:40px;color:#172536}h1{color:#081a2c}h2{color:#087f8c;border-bottom:1px solid #ddd;padding-bottom:5px}.tag{background:#fff6df;padding:10px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ccc;padding:8px}</style></head><body>
+<h1>BRUNEI BANKING RISK STRESS TEST REPORT</h1>
+<p><b>Scenario:</b> ${window.report.scenario}<br><b>Assessment date:</b> ${window.report.date}</p>
+<p class="tag"><b>PROTOTYPE - NOT FOR REGULATORY REPORTING</b></p>
+<h2>Executive Summary</h2><p>${reportText().split('EXECUTIVE SUMMARY')[1].split('KEY STRESS ASSUMPTIONS')[0].replace(/\n/g,'<br>')}</p>
+<h2>Stress Assumptions</h2><p>${reportText().split('KEY STRESS ASSUMPTIONS')[1].split('CAPITAL & LIQUIDITY')[0].replace(/\n/g,'<br>')}</p>
+<h2>Capital & Liquidity</h2><table><tr><th>Metric</th><th>Baseline</th><th>Stressed</th></tr><tr><td>CAR</td><td>${fmt(window.report.baseCAR)}%</td><td>${fmt(window.report.stressedCAR)}%</td></tr><tr><td>NPLF</td><td>${fmt(window.report.N)}%</td><td>${fmt(window.report.stressedNPL)}%</td></tr><tr><td>Liquid assets</td><td>BND ${fmt(window.report.LA)}m</td><td>BND ${fmt(window.report.liquidity)}m</td></tr><tr><td>Estimated losses</td><td>BND 0m</td><td>BND ${fmt(window.report.loss)}m</td></tr></table>
+<h2>Model Governance</h2><p>BDCB-informed structure; illustrative, user-controlled coefficients. Not BDCB-approved or regulatory reporting.</p>
+</body></html>`;
+    const blob=new Blob([htmlDoc],{type:'application/msword'});
+    const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='Brunei_Risk_Stress_Test_Report.doc';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+  }
+
+  function downloadPDF(){
+    const text=reportText().split('\n'), objects=[];
+    let stream='BT\n/F1 15 Tf\n40 800 Td\n';
+    text.forEach((line,i)=>{stream+=`/F1 ${i===0?15:10} Tf\n(${line.replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)')}) Tj\n0 -15 Td\n`;});
+    stream+='ET';
+    objects.push('<< /Type /Catalog /Pages 2 0 R >>');
+    objects.push('<< /Type /Pages /Kids [3 0 R] /Count 1 >>');
+    objects.push('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>');
+    objects.push(`<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`);
+    objects.push('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>');
+    let pdf='%PDF-1.4\n',offs=[0];
+    objects.forEach((o,i)=>{offs[i+1]=pdf.length;pdf+=`${i+1} 0 obj\n${o}\nendobj\n`;});
+    const x=pdf.length;pdf+=`xref\n0 ${objects.length+1}\n0000000000 65535 f \n`;for(let i=1;i<=objects.length;i++)pdf+=String(offs[i]).padStart(10,'0')+' 00000 n \n';pdf+=`trailer\n<< /Size ${objects.length+1} /Root 1 0 R >>\nstartxref\n${x}\n%%EOF`;
+    const blob=new Blob([pdf],{type:'application/pdf'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='Brunei_Risk_Stress_Test_Report.pdf';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+  }
+
+  document.querySelectorAll('.scenario').forEach(btn=>btn.addEventListener('click',()=>preset(btn.dataset.s)));
+  document.querySelectorAll('input').forEach(input=>input.addEventListener('input',()=>{updateLabels();calculate()}));
+  $('printBtn').addEventListener('click',()=>window.print());
+  $('pdfBtn').addEventListener('click',downloadPDF);
+  $('wordBtn').addEventListener('click',downloadWord);
+  $('resetBtn').addEventListener('click',()=>location.reload());
+
+  updateLabels();preset('base');
+})();
+</script>
+</body>
+</html>
