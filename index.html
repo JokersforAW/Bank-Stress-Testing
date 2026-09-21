@@ -42,6 +42,15 @@ table{width:100%;border-collapse:collapse;font-size:11px}th,td{padding:8px;borde
 @media(max-width:1100px){.layout{grid-template-columns:1fr}.side{position:static}.kpis{grid-template-columns:repeat(2,1fr)}.two,.three{grid-template-columns:1fr}.flow{grid-template-columns:1fr}.arrow{transform:rotate(90deg);height:18px}}
 @media(max-width:650px){.wrap{padding:12px}.topin{padding:12px}.hero{display:block}.actions{margin-top:12px}.kpis{grid-template-columns:1fr 1fr}}
 @media print{.top{print-color-adjust:exact}.side,.actions{display:none!important}.layout{display:block}.panel,.kpi{box-shadow:none}.wrap{padding:8px}}
+
+.intelgrid{display:grid;grid-template-columns:1.15fr .85fr;gap:16px;margin-top:16px}
+.intel-list{display:grid;gap:8px}.intel-item{border:1px solid var(--line);border-radius:9px;padding:10px 11px;background:#fbfcfd}.intel-item b{font-size:11px}.intel-item p{margin:4px 0 0;font-size:10px;line-height:1.45;color:var(--muted)}
+.intel-item.high{border-left:3px solid var(--red)}.intel-item.med{border-left:3px solid var(--gold)}.intel-item.low{border-left:3px solid var(--teal)}
+.assumptions{display:grid;grid-template-columns:1fr 1fr;gap:7px}.assump{border:1px solid var(--line);border-radius:8px;padding:8px;background:#fff}.assump span{display:block;font-size:9px;color:var(--muted);text-transform:uppercase;font-weight:800}.assump b{display:block;font-size:13px;margin-top:3px}.assump small{display:block;color:var(--muted);font-size:9px;margin-top:3px}
+.contrib{display:grid;gap:8px}.contrib-row{display:grid;grid-template-columns:115px 1fr 72px;align-items:center;gap:8px;font-size:10px}.contrib-track{height:9px;background:#e7edf2;border-radius:99px;overflow:hidden}.contrib-fill{height:100%;background:var(--teal);border-radius:99px}.contrib-fill.credit{background:#087f8c}.contrib-fill.funding{background:#5d86a6}.contrib-fill.market{background:#c9a34a}.contrib-fill.operational{background:#9b6800}.contrib-fill.other{background:#8b98a6}
+.takeaways{display:grid;gap:7px}.takeaway{display:flex;gap:8px;align-items:flex-start;border-bottom:1px solid var(--line);padding-bottom:7px}.takeaway:last-child{border-bottom:0}.takeaway .num{width:20px;height:20px;border-radius:50%;background:#eaf3f5;color:var(--teal);display:grid;place-items:center;font-size:9px;font-weight:800;flex:0 0 auto}.takeaway p{margin:1px 0 0;font-size:10px;line-height:1.45}
+@media(max-width:1100px){.intelgrid{grid-template-columns:1fr}}
+@media(max-width:650px){.assumptions{grid-template-columns:1fr}.contrib-row{grid-template-columns:95px 1fr 62px}}
 </style>
 </head>
 <body>
@@ -136,6 +145,29 @@ table{width:100%;border-collapse:collapse;font-size:11px}th,td{padding:8px;borde
         <section class="panel"><div class="sectionhead"><h2>Key Risk Drivers</h2></div><div class="callout" id="drivers">—</div></section>
       </div>
 
+
+      <div class="intelgrid">
+        <section class="panel">
+          <div class="sectionhead"><h2>Stress Intelligence</h2><span>Rule-based interpretation</span></div>
+          <div class="intel-list" id="intelligence"></div>
+        </section>
+        <section class="panel">
+          <div class="sectionhead"><h2>Assumption Watch</h2><span>Illustrative inputs</span></div>
+          <div class="assumptions" id="assumptions"></div>
+        </section>
+      </div>
+
+      <div class="two">
+        <section class="panel">
+          <div class="sectionhead"><h2>Capital Loss Contribution</h2><span>Estimated BND m</span></div>
+          <div class="contrib" id="contribution"></div>
+        </section>
+        <section class="panel">
+          <div class="sectionhead"><h2>Key Takeaways</h2><span>Live observations</span></div>
+          <div class="takeaways" id="takeaways"></div>
+        </section>
+      </div>
+
       <div class="two">
         <section class="panel"><h2>Model Assumptions</h2>
           <div class="source"><b>BDCB-informed structure:</b> macro shocks are transmitted through macro-financial relationships to outcomes such as NPLF and CAR.</div>
@@ -215,8 +247,86 @@ table{width:100%;border-collapse:collapse;font-size:11px}th,td{padding:8px;borde
     if(op)drivers.push(`Operational loss: BND ${fmt(op)}m.`);
     $('drivers').innerHTML=drivers.length?drivers.map(x=>'• '+x).join('<br>'):'No material stress driver selected.';
 
+    renderIntelligence({g,s,direct,lgd,run,fund,mkt,op,oth,stressedNPL,N,incr,creditLoss,fundingLoss,loss,stressedCAR,baseCAR,liquidity,liquidityCoverage,LA,D,stressedCapital});
+
     draw(baseCAR,stressedCAR);
-    window.report={scenario:$('scenarioName').textContent,date:new Date().toLocaleString(),baseCAR,stressedCAR,N,stressedNPL,loss,LA,liquidity,liquidityCoverage,g,s,direct,lgd,run,fund,mkt,op,oth};
+    window.report={scenario:$('scenarioName').textContent,date:new Date().toLocaleString(),baseCAR,stressedCAR,N,stressedNPL,loss,LA,liquidity,liquidityCoverage,g,s,direct,lgd,run,fund,mkt,op,oth,creditLoss,fundingLoss,nonCreditLoss:mkt+op+oth};
+  }
+
+
+  function renderIntelligence(data){
+    const {g,s,direct,lgd,run,fund,mkt,op,oth,stressedNPL,N,incr,creditLoss,fundingLoss,loss,stressedCAR,baseCAR,liquidity,liquidityCoverage,LA,D,stressedCapital}=data;
+    const items=[];
+    const creditShare=loss?creditLoss/loss*100:0;
+    const liquidityDrop=LA?Math.max(0,(LA-liquidity)/LA*100):0;
+
+    if(stressedCAR<10){
+      items.push(['high','Capital pressure is material',`Stressed CAR is ${fmt(stressedCAR)}%, below the 10% reference floor used in this prototype.`]);
+    }else if(stressedCAR<12){
+      items.push(['med','Capital buffer is narrowing',`Stressed CAR is ${fmt(stressedCAR)}%, leaving a narrower modeled buffer above the 10% reference floor.`]);
+    }else if(loss>0){
+      items.push(['low','Capital remains above the reference floor',`The scenario reduces capital by BND ${fmt(loss)}m, but stressed CAR remains above the 10% reference floor.`]);
+    }
+
+    if(incr>=4){
+      items.push(['high','Credit risk is the primary transmission channel',`NPLF rises by ${fmt(incr)} percentage points under the assumed macro-to-credit relationship. Estimated credit loss is BND ${fmt(creditLoss)}m.`]);
+    }else if(incr>=2){
+      items.push(['med','Credit deterioration is emerging',`NPLF increases by ${fmt(incr)} percentage points. The modeled credit channel contributes BND ${fmt(creditLoss)}m of estimated loss.`]);
+    }else if(g>0 || direct>0){
+      items.push(['low','Credit transmission remains limited',`The current assumptions produce a ${fmt(incr)} percentage-point increase in NPLF.`]);
+    }
+
+    if(run>=0.20 || liquidityCoverage<20){
+      items.push(['high','Liquidity pressure is significant',`A ${fmt(run*100,0)}% deposit run-off leaves BND ${fmt(liquidity)}m of liquid assets, equal to ${fmt(liquidityCoverage)}% of deposits.`]);
+    }else if(run>=0.10 || liquidityCoverage<35){
+      items.push(['med','Liquidity pressure is emerging',`The modeled liquidity buffer falls by ${fmt(liquidityDrop)}% from baseline under the current deposit run-off assumption.`]);
+    }
+
+    if(fund>=2){
+      items.push(['med','Funding conditions add secondary pressure',`The ${fmt(fund)} percentage-point funding-cost assumption produces BND ${fmt(fundingLoss)}m of modeled loss.`]);
+    }else if(fundingLoss>0){
+      items.push(['low','Funding costs add a secondary drag',`Funding-cost assumptions contribute BND ${fmt(fundingLoss)}m to the modeled capital impact.`]);
+    }
+
+    const nonCredit=mkt+op+oth;
+    if(nonCredit>0){
+      items.push([nonCredit>=80?'med':'low','Non-credit losses are contributing',`Market/FX, operational and other capital impacts contribute BND ${fmt(nonCredit)}m in total.`]);
+    }
+
+    if((run>=0.20 || liquidityCoverage<20) && stressedCAR<12){
+      items.unshift(['high','Solvency and liquidity pressure are occurring together',`The current assumptions reduce both the capital buffer and liquidity position at the same time.`]);
+    }
+
+    $('intelligence').innerHTML=items.slice(0,6).map(x=>`<div class="intel-item ${x[0]}"><b>${x[1]}</b><p>${x[2]}</p></div>`).join('') ||
+      '<div class="intel-item low"><b>No material stress signal</b><p>Move one or more stress drivers to explore how the modeled risk transmission changes.</p></div>';
+
+    const assumptionRows=[
+      ['GDP shock',fmt(g,1)+'%','Macro scenario input'],
+      ['GDP → NPLF sensitivity',fmt(s,2),'Illustrative transmission coefficient'],
+      ['Direct NPLF shock',fmt(direct,1)+' pp','Additional credit shock'],
+      ['LGD',fmt(lgd*100,0)+'%','Illustrative loss severity'],
+      ['Deposit run-off',fmt(run*100,0)+'%','Liquidity stress assumption'],
+      ['Funding cost',fmt(fund,1)+' pp','Illustrative earnings drag'],
+      ['Market / FX loss','BND '+fmt(mkt)+'m','Direct capital impact'],
+      ['Operational loss','BND '+fmt(op)+'m','Direct capital impact']
+    ];
+    $('assumptions').innerHTML=assumptionRows.map(a=>`<div class="assump"><span>${a[0]}</span><b>${a[1]}</b><small>${a[2]}</small></div>`).join('');
+
+    const parts=[
+      ['Credit loss',creditLoss,'credit'],['Funding cost',fundingLoss,'funding'],['Market / FX',mkt,'market'],['Operational',op,'operational'],['Other',oth,'other']
+    ];
+    const max=Math.max(...parts.map(x=>x[1]),1);
+    $('contribution').innerHTML=parts.map(x=>`<div class="contrib-row"><span>${x[0]}</span><div class="contrib-track"><div class="contrib-fill ${x[2]}" style="width:${x[1]/max*100}%"></div></div><b>BND ${fmt(x[1])}m</b></div>`).join('')+
+      `<div class="source">Total modeled capital impact: <b>BND ${fmt(loss)}m</b>. Credit loss represents <b>${fmt(creditShare,0)}%</b> of total modeled loss.</div>`;
+
+    const take=[];
+    if(creditLoss>0) take.push(`Credit risk is the largest modeled source of capital loss${creditShare>50?' and accounts for more than half of total modeled loss':''}.`);
+    if(stressedCAR<baseCAR) take.push(`Stressed CAR declines by ${fmt(baseCAR-stressedCAR)} percentage points from the baseline.`);
+    if(run>0) take.push(`Deposit run-off reduces liquid assets by BND ${fmt(LA-liquidity)}m.`);
+    if(fundingLoss>0) take.push(`Funding-cost assumptions add BND ${fmt(fundingLoss)}m of modeled loss.`);
+    if(nonCredit>0) take.push(`Non-credit impacts add BND ${fmt(nonCredit)}m to the capital impact.`);
+    if(!take.length) take.push('No stress driver is currently producing a material modeled impact.');
+    $('takeaways').innerHTML=take.slice(0,5).map((t,i)=>`<div class="takeaway"><div class="num">${i+1}</div><p>${t}</p></div>`).join('');
   }
 
   function draw(base,stress){
@@ -275,6 +385,12 @@ Deposit run-off: ${fmt(r.run*100)}%
 Funding-cost increase: ${fmt(r.fund)} pp
 Market / FX loss: BND ${fmt(r.mkt)}m
 Operational loss: BND ${fmt(r.op)}m
+
+DYNAMIC STRESS INTELLIGENCE
+Credit loss: BND ${fmt(r.creditLoss)}m
+Funding-cost loss: BND ${fmt(r.fundingLoss)}m
+Non-credit loss: BND ${fmt(r.nonCreditLoss)}m
+Liquidity coverage: ${fmt(r.liquidityCoverage)}% of deposits
 
 CAPITAL & LIQUIDITY
 Baseline CAR: ${fmt(r.baseCAR)}%
